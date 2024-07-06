@@ -1,0 +1,231 @@
+server.py
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from src.trigger.bot import place_order, set_accounts, place_Trade
+import urllib3
+
+# Initiate the server
+app = FastAPI()
+
+# Custom CORSMiddleware to allow all origins (consider more specific origins in production)
+class DynamicCORSMiddleware(CORSMiddleware):
+    def is_allowed_origin(self, origin: str) -> bool:
+        return True  # Allow all origins for development (change in production)
+
+origins = [
+    "http://localhost:3000",
+    "http://localhost:9998/api"
+]
+
+# Ignore CORS for development (configure more granular CORS rules in production)
+app.add_middleware(
+    DynamicCORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=['Accept', 'Accept-Language', 'Content-Language', 'Content-Type'],
+)
+
+http = urllib3.PoolManager(maxsize=10)  # Consider adjusting based on expected load
+
+all_instance = []
+
+
+@app.post("/api/accounts")
+async def accounts(req: Request) -> dict:
+    """
+    Get all accounts and create bot instance.
+
+    Args:
+        request: Request body from the user.
+
+    Returns:
+        Response acknowledging receipt of accounts.
+    """
+    try:
+        acc_objs = await req.json()
+        set_accounts(all_instance, acc_objs)
+        return {"message": "Accounts received"}
+    except Exception as e:  # Catch and log general exceptions
+        print(f"Error processing accounts: {e}")
+        return {"error": "An error occurred while processing your accounts."}
+
+
+bot.py
+import threading
+from src.bot.main import TradeDirect
+from src.helper.helper import get_fields,get_the_instance
+from dotenv import load_dotenv
+import os
+import datetime
+
+load_dotenv()
+status_url  = os.getenv("ORDER_STATUS_URL")
+trade_url  = os.getenv("TRADE_STATUS_URL")
+
+
+def set_accounts(instances:list,data:dict) -> None:
+    # print(data)
+    if type(data) is not list:
+        objs =  data.get("accounts")
+        acc_type =  data.get("type")
+    if acc_type == "New Account":
+        for instance in instances:
+            bot = instance.get("inst")
+            print("Closing old threads.")
+            bot.close()
+
+    instances.clear()
+    data = objs
+
+    for acc_obj in data:
+        email = acc_obj.get("email")
+        password = acc_obj.get("password")
+        account_id = acc_obj.get("accountId")
+        id = acc_obj.get("id")
+        print(id,email)
+        print("Thread starting . . . ")
+        bot = TradeDirect()
+        process = threading.Thread(target=bot.launch_account, args=(account_id,email,password,))
+        process.start()
+
+        inst_obj = {
+                    "id":id,
+                    "inst":bot,
+                    "email":email
+                    }
+        
+        instances.append(inst_obj)
+
+
+main.py
+
+import os
+from selenium import webdriver
+from src.bot.auth.login import launch_account
+
+from src.bot.order.place_order import trade_order,switch_multiple_window
+from src.bot.order.cancel import cancel_order,multiple_cancle
+from src.bot.order.ammend import ammend_order
+
+from src.bot.trade.place_trade import order_trade,switch_multiple_window
+from src.bot.trade.cancel import order_cancel,multiple_cancle
+from src.bot.trade.ammend import order_ammend
+from src.bot.trade.toOrder import toOrder
+
+
+from fake_useragent import UserAgent
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+# import chromedriver_autoinstaller_fix as chrome_driver
+import chromedriver_autoinstaller_fix as chrome_driver
+import os
+
+chrome_driver.install()
+ua = UserAgent(browsers=['chrome'])
+cwd = os.getcwd()
+
+
+class TradeDirect():
+    def __init__(self):
+        """
+        Initialize the TradeDirect class.
+        This method sets up the necessary configurations for interacting with the trade365 website.
+        Args:
+            None
+        Returns:
+            None
+        
+        """
+        # service = Service(executable_path=f'{cwd}\chromedriver\chromedriver.exe')
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless=new")
+        options.add_argument("--silent")
+        options.add_argument("--disable-notifications")
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        # options.add_experimental_option("detach", True)
+        options.add_argument("--start-maximized")
+        options.add_argument(f"user-agent={ua.random}")
+        
+        self.driver = webdriver.Chrome(options=options)
+
+    def launch_account(self,account_id,*args)-> None:
+        launch_account(self.driver,account_id,*args)
+
+
+
+login.py
+
+
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from time import sleep
+from src.bot import xpaths
+
+site_url = "https://traders.td365.com/accounts"
+
+def get_login(driver, email:str,password:str) -> bool:
+        
+        """login on trade365 
+        Args:
+            email(str): The first parameter, email for trade365 account.
+            password(str): for the order
+
+        Returns:
+            The return value. True for success, False otherwise.
+
+        """
+
+
+        login_xpaths = xpaths.login
+        driver.set_window_size(1920, 1080) # set window size
+        sleep(1)
+        try:
+            driver.get(site_url)
+            sleep(2)
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, login_xpaths['login_username']))).send_keys(email)
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, login_xpaths['login_password']))).send_keys(password)
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, login_xpaths['login_button']))).click()
+            sleep(3)
+            
+            return True
+        except Exception as e:
+            print("Failed!")   
+            return False
+
+
+def launch_account(driver,account_id, *args) -> bool:
+    login_xpaths = xpaths.login
+    res = get_login(driver, *args)
+    if res:
+        try:
+            WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, login_xpaths['launch_button'].format(account_id)))).click()
+        except:
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, login_xpaths['launch_button2'].format(account_id)))).click()
+            except:
+                 print("Something went wrong")
+                 return False
+    
+    sleep(2)
+    try:
+        driver.close()
+        driver.switch_to.window(driver.window_handles[0])
+        print("Ready !!!")
+    except Exception as e:
+         print("Failed")
+
+this is my code in this code i want that when i get data in server .py of login 
+
+
+the login should be work simultaneously like if we get 10 account at a time open chome browser different for each and login at same time. 
+
