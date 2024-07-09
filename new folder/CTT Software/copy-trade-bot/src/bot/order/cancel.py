@@ -133,17 +133,20 @@ def cancel_order(driver,action_type:str,
             print("tradeId", TradeId)
             try:
                 close_button_xpath = cancel_xpaths["trade_close"].format(TradeId)
-                
+                print(f"Close button XPATH: {close_button_xpath}")
                 try:
                     # Attempt to click the trade close button directly
                     WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, close_button_xpath))).click()
+                    print("Close button clicked directly.")
                 except:
                     # If clicking the close button fails, expand the market and retry
                     expand_market_xpath = xpaths.common["expand_market"].format(sel_market_name)
                     WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, expand_market_xpath))).click()
                     WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, close_button_xpath))).click()
+                    print("Market expanded.")
                 
                 # Submit the order
+                print("Order submitted successfully.")
                 WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, xpaths.common["submit_button"]))).click()
                 print("Success!")
                 requests.post(status_url, verify=False, data={
@@ -158,11 +161,11 @@ def cancel_order(driver,action_type:str,
                 requests.post(status_url, verify=False, data={
                     "id": id, 
                     "TradeId": TradeId, 
-                    "status": "Desynchronized", 
+                    "status": "Desyncronised", 
                     "orderCreated": order_created, 
-                    "message": "Order Desynchronized"
+                    "message": "Order Desyncronised"
                 })
-                return "Desynchronized"
+                return "Desyncronised"
 
             try:
                 # Close the confirmation dialog

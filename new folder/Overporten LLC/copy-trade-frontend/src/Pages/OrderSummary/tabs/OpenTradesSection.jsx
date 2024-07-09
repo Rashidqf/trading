@@ -88,6 +88,9 @@ const OpenTradesSection = ({
                       <div className="flex-[11.11%] text-sm font-bold uppercase text-[#0c0d0e] flex justify-center">
                         ---
                       </div>
+                      <div className="flex-[11.11%] text-sm text-bfont-boldont-semibold text-[#0c0d0e] flex justify-center">
+                        ---
+                      </div>
 
                       <div className="flex-[11.11%] pr-2 text-sm font-bold uppercase text-[#0c0d0e] flex justify-center">
                         <ActionMultiple orderDataList={orders} />

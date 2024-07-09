@@ -78,7 +78,7 @@ def toOrder(
     try:
         xpath = newAlternativePath.format(market_name,amount,order_level, order_level)
         print(xpath)
-        elements = WebDriverWait(driver, 20).until(
+        elements = WebDriverWait(driver, 4).until(
             EC.presence_of_all_elements_located((By.XPATH, xpath))
         )
         print(elements)
@@ -126,9 +126,9 @@ def toOrder(
             verify=False,
             data={
                 "id": id,
-                "status": "Desynchronized",
-                "message": "Order Desynchronized",
+                "status": "Desyncronised",
+                "message": "Order Desyncronised",
             },
         )
-        return "Desynchronized"
+        return "Desyncronised"
         # return False

@@ -176,17 +176,22 @@ export const createTrade =
     try {
       if (!req.body.percentage)
         return res.status(400).send({ message: "Percentage is required" });
+  
       const isValid = Object.keys(req.body).every((key) =>
         CREATE_ALLOWED.has(key)
       );
+  
       const accounts = await db.find({
         table: Account,
         key: { paginate: req.query.paginate === "false" },
       });
+  
       if (!accounts)
         return res.status(404).send({ message: "No accounts found" });
+  
       const updated = [];
       const orders = [];
+  
       await Promise.all(
         accounts.map(async (account) => {
           const marketData =
@@ -262,8 +267,9 @@ export const createTrade =
         console.error("Error updating trade status:", error);
       }
   
-      if (!orders.length > 0)
+      if (!orders.length)
         return res.status(422).send({ message: "Unprocessable Content" });
+  
       const orderIds = orders.map((order) => order._id);
       const data = {
         orderType: "parent",
@@ -275,45 +281,42 @@ export const createTrade =
           accounts: accounts,
           order: orders,
         };
-        // const parentOrder = await db.create({
-        //   table: orderSchema,
-        //   key: { ...data, populate: { path: "childrens" } },
-        // });
   
         const response = await axios(`${process.env.BOT_SERVER_URL}/trade`, {
           method: "POST",
           data: payLoad,
         });
-
-        console.log("response ",response);
-        
-        if (response.data.status.every(status => status === 'Active')) {
+  
+        console.log("response ", response);
+  
+        if (response.data.status.every((status) => status === "Active")) {
           const parentOrder = await db.create({
             table: orderSchema,
             key: { ...data, populate: { path: "childrens" } },
           });
-          res.status(200).send({ orders,parentOrder });
-        }else {
-          res.status(422).send({ orders  });
+          res.status(200).send({ orders, parentOrder });
+        } else {
+          // Update the status of orders to "Desynchronized" if not active
+          await Promise.all(
+            orders.map(async (order) => {
+              const orderStatus = response.data.status.find(
+                (status) => status.orderId === order._id
+              );
+              if (orderStatus && orderStatus !== "Active") {
+                await db.update({
+                  table: orderSchema,
+                  key: {
+                    _id: order._id,
+                    body: { status: "Desynchronized" },
+                  },
+                });
+              }
+            })
+          );
+          res.status(200).send({ orders });
         }
   
-        // // Create new trades in orderSchema after receiving response from bot
-        // await Promise.all(orders.map(async (order) => {
-        //   const newTrade = await db.create({
-        //     table: orderSchema,
-        //     key: {
-        //       ...order,
-        //       toOrder: "toOrder",
-        //       ammount: order.amount,
-        //       account: order.account,
-        //       populate,
-        //       accountType: order.accountType,
-        //     },
-        //   });
-        //   console.log("New trade created:", newTrade);
-        // }));
         console.log(response.config.data);
-        // await ws.emit("order", response.config.data);
       } catch (err) {
         console.log(err);
       }
@@ -322,6 +325,7 @@ export const createTrade =
       res.status(500).send("Something went wrong");
     }
   };
+    
   
 
 /**

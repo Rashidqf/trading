@@ -192,6 +192,7 @@ const useTrade = () => {
       console.log(id);
       req({ method: "PATCH", uri: `close-order/${id}` })
         .then(({ data }) => {
+          console.log(data);
           console.log(data?.doc?.id);
           console.log(data.docs[0].id);
           // dispatch(updateOrders(data.docs[0]));

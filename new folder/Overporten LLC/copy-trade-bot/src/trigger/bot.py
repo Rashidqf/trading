@@ -156,9 +156,10 @@ def place_Trade(instances: list, data: dict) -> str:
         idsArray = order.get("idsArray")
         reformattedData = order.get("reformattedData")
         account_id = order.get("account", {}).get("id")
+        exit_type = order.get("exit")
         side = order.get("side")
         success = bot.ordercancel(
-            result[2], result[1], "MultipleExit", result[4], status_url, result[18], 
+            result[2], result[1], exit_type, result[4], status_url, result[18], 
             result[19], op, TradeId, side, idsArray, reformattedData, account_id, trade_url
         )
         if success:

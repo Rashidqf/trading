@@ -25,11 +25,11 @@ const ammounts = [
 export default function ActionOrder({ orderData, ordertype }) {
   const side = orderData.side === "buy" ? "sell" : "buy";
   const { handleSubmit, register, reset, setValue } = useForm();
-  const { updateTrade, createOrder,closeTrade, updateOrderNew, orderToTrade } =
+  const { updateTrade, createOrder, closeTrade, updateOrderNew, orderToTrade } =
     useGlobalCtx();
   const modalRef = useRef();
   const [tradeType, setTradeType] = useState("trade");
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const [orderType, setOrderType] = useState(side);
   const [stopLimit, setStopLimit] = useState("");
   const [isVisible, setIsVisible] = useState(false);
@@ -60,22 +60,21 @@ export default function ActionOrder({ orderData, ordertype }) {
    * @returns {void} - This function does not return a value.
    */
 
-    const handlexit = async () => {
-      try {
-        setLoading(true);
-        const action = await updateOrderNew(orderData.id, {
+  const handlexit = async () => {
+    try {
+      setLoading(true);
+      const action = await updateOrderNew(orderData.id, {
         status: "Closed",
         exit: "Exit",
         placeOrder: false,
-    });
-        console.log(action);
-      } catch (error) {
-        console.error("Error updating trade:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+      });
+      console.log(action);
+    } catch (error) {
+      console.error("Error updating trade:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onsubmit = (data) => {
     const newOrderData = { ...orderData };
@@ -89,7 +88,7 @@ export default function ActionOrder({ orderData, ordertype }) {
   };
   return (
     <>
-    {loading && <Loader />}
+      {loading && <Loader />}
       <div className="flex gap-5">
         <button
           disabled={orderData.status === "Closed" ? true : false}
@@ -100,16 +99,26 @@ export default function ActionOrder({ orderData, ordertype }) {
         </button>
         <button
           disabled={orderData.status === "Closed"}
-          onClick={() => {
-            const newOrderData = { ...orderData };
-            const data = orderToTrade(newOrderData);
-            console.log(orderData.id);
-            closeTrade(orderData.id);
-            // window.location.reload();
+          onClick={async () => {
+            try {
+              const newOrderData = { ...orderData };
+              const data = await orderToTrade(newOrderData);
+              console.log("My data", data);
+              if (data) {
+                closeTrade(orderData.id);
+              } else {
+                console.log("After data", data);
+              }
+              console.log(orderData.id);
+              // Optionally reload the page
+              // window.location.reload();
+            } catch (err) {
+              console.error("Error in orderToTrade:", err);
+            }
           }}
           className="font-semibold text-regular py-2 px-7 inline-block rounded-md bg-green-400 disabled:bg-grey-400"
         >
-          To Trade
+          TO Trade
         </button>
       </div>
       <section ref={modalRef} className="trade hidden h-max">

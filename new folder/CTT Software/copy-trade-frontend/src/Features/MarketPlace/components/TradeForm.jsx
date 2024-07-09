@@ -91,7 +91,25 @@ export default function TradeForm({
     const action = tradeType === "order" ? createTrade : createOrder;
   
     // Execute action
-    action(data).finally(() => setLoading(false));
+    action(data)
+    .then((res) => {
+      setLoading(false);
+      // Handle success if needed
+    })
+    .catch((error) => {
+      setLoading(false);
+      // Handle error by showing notification
+      hitToast("An error occurred while placing the order", "error");
+    })
+    .finally(() => {
+      setLoading(false);
+      setExpanded(false);
+      reset();
+      orderLevels = null;
+      setOrderType("");
+      setStopLimit("");
+      setIsVisible(false);
+    });
     
     console.log(data);
     setExpanded(false);

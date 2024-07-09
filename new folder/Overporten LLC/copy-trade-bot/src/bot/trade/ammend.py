@@ -38,7 +38,10 @@ def order_ammend(
 
                     # Click on cancel button
                     print("current_trade_id",current_trade_id)
+                    
                     try:
+                        print("if is working")
+                        
                         WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, xpaths.common["opened_order"]))).click()
                         WebDriverWait(driver, 100).until(EC.element_to_be_clickable((By.XPATH, xpaths.cancel_order["ammend_Butoon"].format(current_trade_id)))).click()
                     except:
@@ -99,22 +102,31 @@ def order_ammend(
                         requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Order Amend", "tradeId": current_trade_id})
                     except:
                         print("Error in clicking submit button.")
-                        requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Order Active", "tradeId": current_trade_id})
+                        requests.post(status_url, verify=False, data={"id": current_id, "status": "Desyncronised", "message": "Order Desyncronised", "tradeId": current_trade_id})
                         continue
                         
                     # Click on close button
                     try:
-                        driver.find_element(By.XPATH, xpaths.common["close_button"]).click()
+                        submit_button = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[@class='btnBack']")))
+                        submit_button.click()
+                        print("backbutton click ")
+                        
+                        close_button = WebDriverWait(driver, 10).until(
+                            EC.element_to_be_clickable((By.XPATH, xpaths.common["close_button"])))
+                        close_button.click()
+                        print("close button clicked")
                         requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Order Active", "tradeId": current_trade_id})
-                    except:
-                        print("Error in clicking close button or page refresh needed.")
-                        driver.refresh()
+                    except Exception as e:
+                        requests.post(status_url, verify=False, data={"id": current_id, "status": "Desyncronised", "message": "Order Desyncronised", "tradeId": current_trade_id})
+                        print(f"An error occurred: ")
                         continue
                 except:
                     driver.refresh()
         else:
             print("id not found")
     else:
+            print("else is working")
             try:
                 WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, xpaths.common["opened_order"]))).click()
                 cancel_button = WebDriverWait(driver, 100).until(
@@ -176,17 +188,45 @@ def order_ammend(
             except:
                 print("Error in clicking submit button.")
                 requests.post(status_url, verify=False, data={"id": id, "status": "Desyncronised", "message": "Order Desyncronised", "tradeId": TradeId})
-
-            # Click on close button
             try:
-                driver.find_element(By.XPATH, xpaths.common["close_button"]).click()
-                requests.post(status_url, verify=False, data={"id": id, "status": "Active", "message": "Order Active", "tradeId": TradeId})
-                return "Active"
+                submit_button = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[@class='btnBack']")))
+                submit_button.click()
+                print("backbutton click ")
                 
-            except:
-                print("Error in clicking close button or page refresh needed.")
-                driver.refresh()
-                return "Desyncronised"
+                close_button = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, xpaths.common["close_button"])))
+                close_button.click()
+                print("close button clicked")
+                requests.post(status_url, verify=False, data={"id": id, "status": "Active", "message": "Order Desyncronised", "tradeId": TradeId})
+                return "Active"
+            except: 
+                print("back button not working ")   
+                requests.post(status_url, verify=False, data={"id": id, "status": "Desyncronised", "message": "Order Desyncronised", "tradeId": TradeId}) 
+                
+            # try:
+            #     submit_button = WebDriverWait(driver, 10).until(
+            #         EC.element_to_be_clickable((By.XPATH, xpaths.common["close_button"])))
+            #     submit_button.click()
+            #     print("close button clicked")
+            # except: 
+            #     print("back button not working ")  
+            # # Click on close button
+            # try:
+            #     back_button = driver.find_element(By.XPATH, "//button[@class='btnBack']")
+            #     back_button.click()
+            #     sleep(.2)
+            #     print("back button clicked")
+            #     sleep(.2)
+            #     close_button = driver.find_element(By.XPATH, xpaths.common["close_button"])
+            #     close_button.click()
+            #     print("close button clicked")
+            #     requests.post(status_url, verify=False, data={"id": id, "status": "Active", "message": "Order Active", "tradeId": TradeId})
+            #     return "Active"
+            # except Exception as e:
+            #     print(f"Error in clicking close button or page refresh needed: {e}")
+            #     driver.refresh()
+            #     return "Desyncronised"
                 
     # for key, value in reformattedData.items():
     #     if key == account_id:
@@ -264,7 +304,7 @@ def order_ammend(
     #     sleep(.2)
     #     # if action_type == "trade":
     #     #     back_button = WebDriverWait(driver, 10).until(
-    #     #     EC.element_to_be_clickable((By.XPATH, xpaths.common["back_button"]))
+    #     #     EC.element_to_be_clickable((By.XPATH, "xpaths.common["back_button"]"))
     #     #     )
     #     # else:
     #     #     print_button = WebDriverWait(driver, 10).until(

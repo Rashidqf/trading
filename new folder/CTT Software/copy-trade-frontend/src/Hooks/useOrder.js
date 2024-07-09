@@ -104,30 +104,27 @@ const useOrder = () => {
   };
 
   const orderToTrade = (data) => {
-    req({ method: "POST", uri: `trades`, data })
-      .then((res) => {
-        console.log(data.id);
-        console.log(res  );
-        // dispatch(removeTrade({ id: res.data.parentOrder.id }));
-        // dispatch(removeTrade({ id: data.id }));
-        dispatch(addOrder(res.data.parentOrder))
-        dispatch(addOrders(res.data.parentOrder));
-        // dispatch(addTrade(res.data.parentOrder));
-        // dispatch(updateOrders(data.docs[0]));
+    return new Promise(async (resolve, reject) => {
+      try {
+        const res = await req({ method: "POST", uri: `trades`, data });
         
+        console.log(data.id);
+        console.log("response data ",res);
+  
+        // Dispatch actions
+        dispatch(addOrder(res.data.parentOrder));
+        // dispatch(addOrders(res.data.parentOrder));
+  
         setTriggerEffect(true);
-        // dispatch(updateOrders(data));
-        // dispatch(updateTrades(data));
-        // dispatch(removeTrade({ id: data.id }));
-        // dispatch(addTrade(data));
-        // dispatch(updateOrders(data));
-        // dispatch(updateOrders(data));
-        // dispatch(updateTrades(data));
-        // dispatch(updateOrder(data));
-        // dispatch(removeTrade({ id: data.id }));
-        // hitToast("Order move to trade", "success");
-      })
-      .catch((err) => console.log(err));
+  
+        // Resolve the promise with the response data
+        resolve(res.data);
+      } catch (err) {
+        console.log(err);
+        // Reject the promise with the error
+        reject(err);
+      }
+    });
   };
 
   const updateTrade = (id, payload) => {

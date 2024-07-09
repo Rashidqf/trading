@@ -12,7 +12,6 @@ const OpenTradesSection = ({
   toggleAccordion,
 }) => {
   const newOrders = useSelector((state) => state.orderStore.orders);
-console.log(groupedOrders);
   return (
     <section className="p-5 w-full flex flex-col h-full">
       <div className="flex-1 flex flex-col">
