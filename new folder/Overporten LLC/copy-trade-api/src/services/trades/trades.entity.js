@@ -191,46 +191,40 @@ export const createTrade =
     }
   };
 
-export const createTradetoOrder =
-  ({ db, ws }) =>
-  async (req, res) => {
+  export const createTradetoOrder = ({ db, ws }) => async (req, res) => {
     try {
       if (!req.body.percentage)
         return res.status(400).send({ message: "Percentage is required" });
+  
       const isValid = Object.keys(req.body).every((key) =>
         CREATE_ALLOWED.has(key)
       );
-      // if (!isValid) return res.status(400).send({ message: "Bad Request" });
+  
       const accounts = await db.find({
         table: Account,
         key: { paginate: req.query.paginate === "false" },
       });
+  
       if (!accounts)
         return res.status(404).send({ message: "No accounts found" });
+  
       const updated = [];
       const orders = [];
-      const { marketData, stopLoss, entryPrice, exitFrom } = req.body;
+  
       await Promise.all(
         accounts.map(async (account) => {
-          const side = req.body.side;
-          const ammount = calAmountbyU(account.u, stopLoss, entryPrice, side);
-          // const marketData =
-          //   account.percentage.find(
-          //     (p) => p.itemName === req.body.marketData.marketName
-          //   ) || {};
-          // Extract the value based on the given percentage
-          // const percentageValue = marketData[`${req.body.percentage}%`];
-          // Check if the percentage value exists and is not 0
-          if (ammount && ammount !== 0) {
-            const log = await genLog("Pending", "Order Created");
-            // Assign the value directly to the amount
-            req.body.amount = ammount;
+          const marketData =
+            account.percentage.find(
+              (p) => p.itemName === req.body.marketData.marketName
+            ) || {};
+          const percentageValue = marketData[`${req.body.percentage}%`];
+          if (percentageValue && percentageValue !== 0) {
+            req.body.amount = percentageValue;
             if (req.body.exitFrom) {
               req.body.ammend = undefined;
               const parent = await db.find({
                 table: Trade,
                 key: {
-                  logs: [log],
                   query: { childrens: { $in: [ObjectId(req.body.exitFrom)] } },
                   allowedQuery,
                   populate: { path: "childrens" },
@@ -244,7 +238,6 @@ export const createTradetoOrder =
                       _id: children._id,
                       body: {
                         partialExit: true,
-                        orderLevel: stopLoss,
                         percentage: req.body.percentage,
                         amount: req.body.amount,
                       },
@@ -266,21 +259,22 @@ export const createTradetoOrder =
               key: {
                 ...req.body,
                 toOrder: "toOrder",
+                ammount: req.body.amount,
                 account: account._id,
                 populate,
+                accountType: account.accountType,
               },
             });
             orders.push(newTrade);
           }
         })
       );
-      console.log("my orders", orders, accounts);
-
+  
       try {
         const trade = await Trade.findByIdAndUpdate(req.body.id, {
           status: "Closed",
         });
-
+  
         if (trade) {
           console.log(
             `Trade ${req.body.id} status updated to "Closed" successfully.`
@@ -291,29 +285,57 @@ export const createTradetoOrder =
       } catch (error) {
         console.error("Error updating trade status:", error);
       }
-      if (!orders.length > 0)
+  
+      if (!orders.length)
         return res.status(422).send({ message: "Unprocessable Content" });
+  
       const orderIds = orders.map((order) => order._id);
       const data = {
         orderType: "parent",
         childrens: orderIds,
       };
-      console.log(data.childrens);
-      const parentOrder = await db.create({
-        table: orderSchema,
-        key: { ...data, populate: { path: "childrens" } },
-      });
-      res.status(200).send({ orders, parentOrder });
+  
       try {
         const payLoad = {
           accounts: accounts,
           order: orders,
         };
+  
         const response = await axios(`${process.env.BOT_SERVER_URL}/trade`, {
           method: "POST",
           data: payLoad,
         });
-        await ws.emit("account", response.data);
+  
+        console.log("response ", response);
+  
+        if (response.data.status.every((status) => status === "Active")) {
+          const parentOrder = await db.create({
+            table: orderSchema,
+            key: { ...data, populate: { path: "childrens" } },
+          });
+          res.status(200).send({ orders, parentOrder });
+        } else {
+          // Update the status of orders to "Desynchronized" if not active
+          await Promise.all(
+            orders.map(async (order) => {
+              const orderStatus = response.data.status.find(
+                (status) => status.orderId === order._id
+              );
+              if (orderStatus && orderStatus !== "Active") {
+                await db.update({
+                  table: orderSchema,
+                  key: {
+                    _id: order._id,
+                    body: { status: "Desynchronized" },
+                  },
+                });
+              }
+            })
+          );
+          res.status(200).send({ orders });
+        }
+  
+        console.log(response.config.data);
       } catch (err) {
         console.log(err);
       }
@@ -322,6 +344,10 @@ export const createTradetoOrder =
       res.status(500).send("Something went wrong");
     }
   };
+
+
+
+
 
 /**
  * Get a single trade by ID.

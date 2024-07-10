@@ -43,7 +43,7 @@ def trade_order(driver, market_name, action_type, action_method, amount, hedging
         print("stopLoss",stopLoss)
         elem = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, order_xpaths["amount_input"])))
         elem.clear()
-        elem.send_keys(stopLoss)
+        elem.send_keys(amount)
         WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, order_xpaths["action_button"].format(action_method)))).click()
     except Exception as e:
         print("Element not found")
@@ -53,21 +53,25 @@ def trade_order(driver, market_name, action_type, action_method, amount, hedging
     # Submitting order
     try:
         driver.find_element(By.XPATH, xpaths.common["submit_button"]).click()
+        print("its working also")
+        sleep(.2)
     except Exception as e:
         return "Desyncronised"
-    print(direction_value)
 
     # Checking for successful order placement
     try:
-        direction_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//span[@class='spnReferenceNo']")))
+        print("its working")
+        direction_element = WebDriverWait(driver,20).until(EC.visibility_of_element_located((By.XPATH, "//span[@class='spnReferenceNo']")))
         tradeid = direction_element.text
-        open_price_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//span[@class='spnOpenPrice']")))
+        print("working")
+        open_price_element = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.XPATH, "//span[@class='spnOpenPrice']")))
         open_price = open_price_element.text
-        print( "openPrice", open_price)
+        print("working")
         driver.find_element(By.XPATH, xpaths.common["close_button"]).click()
-        requests.post(status_url, verify=False, data={"id": id, "tradeId": tradeid, "status": "Active", "message": "Order Active", "openPrice": open_price})
+        requests.post(status_url, verify=False, data={"id": id, "tradeId": tradeid, "status": "Active", "message": "Trade Active", "openPrice": open_price})
         
     except Exception as e:
+        driver.find_element(By.XPATH, xpaths.common["close_button"]).click()
         requests.post(status_url, verify=False, data={"id": id, "status": "Desyncronised", "message": "Order Desynchronised"})
         print("Error waiting for page to load after submission:")
         return "Desyncronised"
@@ -132,7 +136,7 @@ def trade_order(driver, market_name, action_type, action_method, amount, hedging
             ammend_elem = driver.find_element(By.XPATH,at_price_path)
             ammend_elem.send_keys(Keys.ENTER)
             ammend_elem.clear()
-            ammend_elem.send_keys(amount)
+            ammend_elem.send_keys(stopLoss)
             print("at price")
         
         except Exception as e:

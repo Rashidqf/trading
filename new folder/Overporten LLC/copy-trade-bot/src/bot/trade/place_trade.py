@@ -23,6 +23,7 @@ def order_trade(driver, market_name:str,myammount:str, action_type:str, action_m
     global direction_value
     
     driver.refresh()
+    print("myammount",myammount)
     
     order_xpaths = xpaths.place_trade 
     
@@ -134,6 +135,7 @@ def order_trade(driver, market_name:str,myammount:str, action_type:str, action_m
         
 
     except Exception as e:
+        requests.post(status_url, verify=False, data={"id": id, "status": "Active", "message": "Order Placed","tradeId": newTradeid})
         print("Error waiting for page to load after submission:",e)
         return "Desyncronised"
 
