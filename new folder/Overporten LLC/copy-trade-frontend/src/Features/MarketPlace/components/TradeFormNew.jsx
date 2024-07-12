@@ -29,7 +29,7 @@ export default function TradeFormNew({ marketData = {} }) {
 
   const onsubmit = async (data) => {
     setLoading(true);
-    let orderLevels = watch("stopLoss");
+    let orderLevels = watch("riskSl");
     let entryPrice = watch("entryPrice");
   
     if (orderLevels === entryPrice) {
@@ -196,7 +196,7 @@ export default function TradeFormNew({ marketData = {} }) {
                 step="any"
                 min="0"
                 autoComplete="on"
-                {...register("stopLoss")}
+                {...register("riskSl")}
                 onChange={handleStopLossChange} 
                 className="w-28 outline-none border border-grey-400 h-10 px-4 py-1 text-center"
               />

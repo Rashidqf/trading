@@ -37,6 +37,7 @@ const OpenOrdersSection = ({
     setGroupedOrders(newGroupedOrders);
   }, [parentTrade]);
 
+
   // Initialize activeAccordion with all group keys
   useEffect(() => {
     const allGroupKeys = Object.keys(groupedOrders);
@@ -63,6 +64,9 @@ const OpenOrdersSection = ({
               childPercentage === 200 ? 100 : childPercentage;
             return acc + normalizedPercentage;
           }, 0);
+          const totalPercentageTwoDecimals = parseFloat(totalPercentage.toFixed(2));
+
+
 
           return (
             <div key={groupKey}>
@@ -104,8 +108,14 @@ const OpenOrdersSection = ({
                       <div className="flex-[11.11%] text-sm  text-center font-bold	 text-[#0c0d0e] flex justify-center">
                         ---
                       </div>
+                      <div className="flex-[11.11%] text-sm  text-center font-bold	 text-[#0c0d0e] flex justify-center">
+                        ---
+                      </div>
                       <div className="flex-[11.11%] text-sm  font-bold	 uppercase text-[#0c0d0e] flex justify-center">
-                        {`${totalPercentage}`}
+                        {`${totalPercentageTwoDecimals}`}
+                      </div>
+                      <div className="flex-[11.11%] text-sm  font-bold	 uppercase text-[#0c0d0e] flex justify-center">
+                        ---
                       </div>
                       <div className="flex-[11.11%] text-sm  font-bold	 uppercase text-[#0c0d0e] flex justify-center">
                         ---

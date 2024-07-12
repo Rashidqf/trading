@@ -17,7 +17,7 @@ def switch_multiple_window(driver, *args):
 
 def trade_order(driver, market_name, action_type, action_method, amount, hedging, order_level, 
                 stop_limit, stop_or_trailing, points_away, at_price, guarantee, limit, 
-                lAt_price, lPoints_away, status_url, id,stopLoss):
+                lAt_price, lPoints_away, status_url, id,stopLoss,riskSl):
     
     global direction_value
     tradeid = None
@@ -40,7 +40,7 @@ def trade_order(driver, market_name, action_type, action_method, amount, hedging
 
     # Entering amount and clicking action button
     try:
-        print("stopLoss",stopLoss)
+        print("stopLoss",riskSl)
         elem = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, order_xpaths["amount_input"])))
         elem.clear()
         elem.send_keys(amount)
@@ -77,76 +77,108 @@ def trade_order(driver, market_name, action_type, action_method, amount, hedging
         return "Desyncronised"
     try:
         WebDriverWait(driver, 1).until(
-                EC.element_to_be_clickable((By.XPATH, ammend_xpaths["edit_button"].format(tradeid)))).click()
-        print("trade_ammed")
+            EC.element_to_be_clickable((By.XPATH, ammend_xpaths["edit_button"].format(tradeid)))).click()
+        print("Step 1: Clicked edit_button")
         print(ammend_xpaths["edit_button"].format(tradeid))
         sleep(.2)
-    except Exception as e:
-        try:
-            WebDriverWait(driver, 2).until(
-                EC.element_to_be_clickable((By.XPATH, xpaths.common["expand_market"].format(market_name)))).click()
-            print("Expanded")
-            print(tradeid)
-            sleep(.2)
-
-            WebDriverWait(driver, 1).until(
-                EC.element_to_be_clickable((By.XPATH, ammend_xpaths["edit_button"].format(tradeid)))).click()
-            print("edit_button")
-            sleep(.2)
-        except:
-            print("Something went wrong")
-            requests.post(status_url,verify=False,data={"id":id,"status":"Desyncronised", "message":"Ordrer Desyncronised","tradeId" : tradeid})
-            
         try:
             try:
                 WebDriverWait(driver, 4).until(
-                        EC.element_to_be_clickable((By.XPATH,ammend_xpaths["stop_price_input_selected"])))
-                print("stop_price_input_selected")
+                    EC.element_to_be_clickable((By.XPATH, ammend_xpaths["stop_price_input_selected"])))
+                print("Step 4: stop_price_input_selected")
                 already_selected = True
-            except: 
+            except Exception as e:
+                print(f"Error at Step 4: {e}")
                 driver.find_element(By.CSS_SELECTOR, ammend_xpaths["stop_checkbox"]).click()
                 already_selected = False
-                print("stop_checkbox")
+                print("Step 5: Clicked stop_checkbox")
 
-            print(amount)
-            # if amount:
-            #     if already_selected:
-            #         input_path = ammend_xpaths["points_away_input_selected"]
-            #     else:
-            #         input_path = ammend_xpaths["stop_point_input_selected"]
-            #     input_elem = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH,input_path)))
-            #     input_elem.click()
-            #     sleep(.1)
-            #     if not already_selected:
-            #         input_elem.send_keys(amount)
-            #     else:
-            #         send_amount_elem = WebDriverWait(driver, 3).until(
-            #             EC.element_to_be_clickable((By.XPATH, ammend_xpaths["points_away_input"])))
-            #         send_amount_elem.clear()
-            #         send_amount_elem.send_keys(amount)
-            
-            # elif amount:
-                
+            print(riskSl)
             print("at price")
             if not already_selected:
                 at_price_path = ammend_xpaths["stop_price_input_not_selected"]
             else:
                 at_price_path = ammend_xpaths["ammend_at_price_input"]
 
-            ammend_elem = driver.find_element(By.XPATH,at_price_path)
+            ammend_elem = driver.find_element(By.XPATH, at_price_path)
             ammend_elem.send_keys(Keys.ENTER)
+            print("Step 6: Pressed ENTER in ammend_elem")
             ammend_elem.clear()
-            ammend_elem.send_keys(stopLoss)
-            print("at price")
-        
+            print("Step 7: Cleared ammend_elem")
+            ammend_elem.send_keys(riskSl)
+            print("Step 8: Entered riskSl in ammend_elem")
+
         except Exception as e:
-            requests.post(status_url,verify=False,data={"id":id,"status":"Desyncronised","message":"Ordrer Desyncronised","tradeId" : tradeid, "openPrice": open_price})
+            print(f"Error at Steps 4-8: {e}")
+            requests.post(status_url, verify=False, data={"id": id, "status": "Desyncronised", "message": "Ordrer Desyncronised", "tradeId": tradeid, "openPrice": open_price})
             print("orderCreated")
+            
         try:
             driver.find_element(By.XPATH, xpaths.common["submit_button"]).click()
             sleep(.2)
-            print("success")
-            requests.post(status_url,verify=False,data={"id":id,"status":"Active","message":"Ordrer Ammend","tradeId" : tradeid,"openPrice": open_price})
+            print("Step 9: Clicked submit_button")
+            requests.post(status_url, verify=False, data={"id": id, "status": "Active", "message": "Ordrer Ammend", "tradeId": tradeid, "openPrice": open_price})
             return "Active"
         except Exception as e:
-                    print("Something went wrong !!")
+            print(f"Error at Step 9: {e}")
+            print("Something went wrong !!")
+
+    except Exception as e:
+        print(f"Error at Step 1: {e}")
+        try:
+            WebDriverWait(driver, 2).until(
+                EC.element_to_be_clickable((By.XPATH, xpaths.common["expand_market"].format(market_name)))).click()
+            print("Step 2: Expanded market")
+            print(tradeid)
+            sleep(.2)
+
+            WebDriverWait(driver, 1).until(
+                EC.element_to_be_clickable((By.XPATH, ammend_xpaths["edit_button"].format(tradeid)))).click()
+            print("Step 3: Clicked edit_button after expanding market")
+            sleep(.2)
+        except Exception as e:
+            print(f"Error at Step 2-3: {e}")
+            print("Something went wrong")
+            requests.post(status_url, verify=False, data={"id": id, "status": "Desyncronised", "message": "Ordrer Desyncronised", "tradeId": tradeid})
+
+        try:
+            try:
+                WebDriverWait(driver, 4).until(
+                    EC.element_to_be_clickable((By.XPATH, ammend_xpaths["stop_price_input_selected"])))
+                print("Step 4: stop_price_input_selected")
+                already_selected = True
+            except Exception as e:
+                print(f"Error at Step 4: {e}")
+                driver.find_element(By.CSS_SELECTOR, ammend_xpaths["stop_checkbox"]).click()
+                already_selected = False
+                print("Step 5: Clicked stop_checkbox")
+
+            print(riskSl)
+            print("at price")
+            if not already_selected:
+                at_price_path = ammend_xpaths["stop_price_input_not_selected"]
+            else:
+                at_price_path = ammend_xpaths["ammend_at_price_input"]
+
+            ammend_elem = driver.find_element(By.XPATH, at_price_path)
+            ammend_elem.send_keys(Keys.ENTER)
+            print("Step 6: Pressed ENTER in ammend_elem")
+            ammend_elem.clear()
+            print("Step 7: Cleared ammend_elem")
+            ammend_elem.send_keys(riskSl)
+            print("Step 8: Entered riskSl in ammend_elem")
+
+        except Exception as e:
+            print(f"Error at Steps 4-8: {e}")
+            requests.post(status_url, verify=False, data={"id": id, "status": "Desyncronised", "message": "Ordrer Desyncronised", "tradeId": tradeid, "openPrice": open_price})
+            print("orderCreated")
+            
+        try:
+            driver.find_element(By.XPATH, xpaths.common["submit_button"]).click()
+            sleep(.2)
+            print("Step 9: Clicked submit_button")
+            requests.post(status_url, verify=False, data={"id": id, "status": "Active", "message": "Ordrer Ammend", "tradeId": tradeid, "openPrice": open_price})
+            return "Active"
+        except Exception as e:
+            print(f"Error at Step 9: {e}")
+            print("Something went wrong !!")

@@ -21,11 +21,14 @@ export default function TRow({ order, idx, ordertype }) {
         {order?.entryPrice || "---"}
       </div>
       <div className="flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center">
-        {order?.stopLoss || order?.atPrice || order?.limitPointsAway || "---"}
+        {order?.riskSl || order?.atPrice || order?.limitPointsAway || "---"}
       </div>
 
       <div className="flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center">
       {order?.openPrice ? order.openPrice : "---"}
+      </div>
+      <div className="flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center">
+        {order?.stoploss || order?.atPrice ||"---"}
       </div>
       <div className="flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center">
         {ordertype === "trade" ? order?.ammount : order?.amount}
@@ -37,11 +40,12 @@ export default function TRow({ order, idx, ordertype }) {
         {order.type || '---'}
       </div> */}
       <div className="flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center">
-        {order?.side || "---"}
-      </div>
-      <div className="flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center">
         {order?.tradeId || "---"}
       </div>
+      <div className="flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center">
+        {order?.side || "---"}
+      </div>
+      
       <div className="flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center">
         {order?.status || "---"}
       </div>

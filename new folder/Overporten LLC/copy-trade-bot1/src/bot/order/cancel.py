@@ -181,7 +181,7 @@ def cancel_order(driver,action_type:str,
 
             try:
                 driver.find_element(By.XPATH,xpaths.common["close_button"]).click()
-
+                return "Active"
             except: 
                 print("Close btn not found")
                 pass

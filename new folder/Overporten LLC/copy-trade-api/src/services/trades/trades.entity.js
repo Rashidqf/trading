@@ -39,6 +39,7 @@ const CREATE_ALLOWED = new Set([
   "openPrice",
   "entryPrice",
   "stopLoss",
+   "riskSl"
 ]);
 
 // used for populating the 'account' field in  query result.
@@ -84,12 +85,12 @@ export const createTrade =
         return res.status(404).send({ message: "No accounts found" });
       const updated = [];
       const orders = [];
-      const { marketData, stopLoss, entryPrice, exitFrom } = req.body;
+      const { marketData, riskSl, entryPrice, exitFrom } = req.body;
       await Promise.all(
         accounts.map(async (account) => {
           const side = req.body.side;
           console.log(account.u);
-          const ammount = calAmountbyU(account.u, stopLoss, entryPrice, side);
+          const ammount = calAmountbyU(account.u, riskSl, entryPrice, side);
           console.log(ammount);
           // const marketData =
           //   account.percentage.find(
@@ -121,7 +122,7 @@ export const createTrade =
                       _id: children._id,
                       body: {
                         partialExit: true,
-                        orderLevel: stopLoss,
+                        orderLevel: riskSl,
                         percentage: req.body.percentage,
                         amount: req.body.amount,
                       },
@@ -142,7 +143,7 @@ export const createTrade =
               table: Trade,
               key: {
                 ...req.body,
-                orderLevel: stopLoss,
+                orderLevel: riskSl,
                 account: account._id,
                 populate,
                 accountType: account.accountType,

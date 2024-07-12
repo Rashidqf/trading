@@ -51,13 +51,13 @@ export const createOrder =
       if (!accounts)
         return res.status(400).send({ message: "No accounts found for trade" });
 
-      const { marketData, stopLoss, entryPrice, exitFrom } = req.body;
+      const { marketData, riskSl, entryPrice, exitFrom } = req.body;
 
       let orders = [];
       await Promise.all(
         accounts.map(async (account) => {
           const side = req.body.side;
-          const ammount = calAmountbyU(account.u, stopLoss, entryPrice, side);
+          const ammount = calAmountbyU(account.u, riskSl, entryPrice, side);
           
           console.log(ammount);
           if (ammount !== 0) {

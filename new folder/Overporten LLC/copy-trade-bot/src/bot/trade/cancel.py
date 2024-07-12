@@ -111,41 +111,6 @@ def order_cancel(driver,action_type:str,
                     driver.refresh()        
         
         
-        elif selling_type == "MultipleExit":
-            current_url = driver.current_url
-            print("Selling TYpe", selling_type)
-            try:
-                driver.find_element(By.TAG_NAME, "body").send_keys(Keys.CONTROL + Keys.HOME)
-                sleep(0.2)
-                xpath = order_xpaths['market_element'].format(sel_market_name, action_type.capitalize())
-                
-                element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, xpath)))
-                WebDriverWait(driver, 4).until(EC.visibility_of(element))
-                element.click()
-                
-            except:
-                WebDriverWait(driver, 4).until(EC.element_to_be_clickable((By.XPATH, xpath))).click()
-                requests.post(status_url, verify=False, data={"id": id, "tradeId": TradeId, "status": "Desyncronised", "message": "Order Desynchronised - Unknown error"})
-                return False
-            #token amount
-            try:
-                elem = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, order_xpaths["amount_input"])))
-                elem.clear()
-                elem.send_keys(amount)
-                WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, order_xpaths["action_button"].format(new_side)))).click()
-            except Exception as e:
-                print("Element not found")
-                requests.post(status_url, verify=False, data={"id": id, "tradeId": TradeId, "status": "Desyncronised", "message": "Order Desynchronised"})
-                return False
-            try:
-                driver.find_element(By.XPATH, xpaths.common["submit_button"]).click()
-                print("success")
-                sleep(.25)
-                driver.find_element(By.XPATH,xpaths.common["close_button"]).click()
-                print("Clicked on the close button")
-                requests.post(status_url, verify=False, data={"id": id, "tradeId": TradeId, "status": "Closed", "message": "Order Closed", "idsArray": idsArray})
-            except Exception as e:
-                pass
         else:
                     
             driver.refresh()
