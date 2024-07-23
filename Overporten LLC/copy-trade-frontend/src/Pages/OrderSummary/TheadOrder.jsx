@@ -13,12 +13,17 @@ export default function THeadOrder(ordertype) {
         "flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center",
     },
     {
-      name: "Open Price",
+      name: "(E) OPEN PRICE",
       classNames:
         "flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center",
     },
     {
       name: "RISK SL",
+      classNames:
+        "flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center",
+    },
+    {
+      name: "OPEN PRICE",
       classNames:
         "flex-[11.11%] text-xs font-semibold uppercase text-[#0c0d0e] flex justify-center",
     },

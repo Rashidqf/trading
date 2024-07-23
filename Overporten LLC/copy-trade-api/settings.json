@@ -11,5 +11,5 @@
   "SMTP_PASSWORD": "",
   "EMAIL_NAME": "",
   "EMAIL_FROM": "from@example.com",
-  "MONGODB_URL": "mongodb://localhost:27017/trading"
+  "MONGODB_URL": "mongodb://localhost:27017/newOverportan"
 }

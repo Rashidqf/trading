@@ -26,7 +26,7 @@ const ammounts = [
 export default function ActionOrder({ orderData, ordertype }) {
   const side = orderData.side === "buy" ? "sell" : "buy";
   const { handleSubmit, register, reset, setValue } = useForm();
-  const { updateTrade, createOrder, updateOrderNew, orderToTrade } =
+  const { updateTrade, createOrder, updateOrderNew, orderToTrade,closeTrade } =
     useGlobalCtx();
   const modalRef = useRef();
   const [tradeType, setTradeType] = useState("trade");
@@ -100,13 +100,26 @@ export default function ActionOrder({ orderData, ordertype }) {
         </button>
         <button
           disabled={orderData.status === "Closed"}
-          onClick={() => {
-            const newOrderData = { ...orderData };
-            orderToTrade(newOrderData);
+          onClick={async () => {
+            try {
+              const newOrderData = { ...orderData };
+              const data = await orderToTrade(newOrderData);
+              console.log("My data", data);
+              if (data) {
+                closeTrade(orderData.id);
+              } else {
+                console.log("After data", data);
+              }
+              console.log(orderData.id);
+              // Optionally reload the page
+              // window.location.reload();
+            } catch (err) {
+              console.error("Error in orderToTrade:", err);
+            }
           }}
           className="font-semibold text-regular py-2 px-7 inline-block rounded-md bg-green-400 disabled:bg-grey-400"
         >
-          To Trade
+          TO Trade
         </button>
       </div>
       <section ref={modalRef} className="trade hidden h-max">

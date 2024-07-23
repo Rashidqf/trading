@@ -14,10 +14,13 @@ def place_order(instances: list, data: dict) -> str:
 
     def place_new_trade(bot, result):
         print("placing new trade")
+        stopLoss = order.get("stopLoss")
+        riskSl = order.get("riskSl")
+        print("riskSl",riskSl)
         success = bot.order(
             result[1], result[2], result[3], result[4], result[5], result[6],
             result[7], result[8], result[9], result[10], result[11], result[12],
-            result[13], result[14], status_url, result[18]
+            result[13], result[14], status_url, result[18],stopLoss,riskSl
         )
         if success:
             print("Order placed successfully")
@@ -105,12 +108,11 @@ def place_order(instances: list, data: dict) -> str:
         return "Desynchronized"
 def place_Trade(instances: list, data: dict) -> str:
     results = []
-
-    def place_new_trade(bot, result, myamount):
+    def place_new_trade(bot, result, myamount,riskSl):
         success = bot.trade(
             result[1], myamount, result[2], result[3], result[4], result[5], 
             result[6], result[7], result[8], result[9], result[10], result[11], 
-            result[12], result[13], result[14], trade_url, result[18]
+            result[12], result[13], result[14], trade_url, result[18],riskSl
         )
         if success:
             print("Trade placed successfully")
@@ -154,10 +156,12 @@ def place_Trade(instances: list, data: dict) -> str:
         idsArray = order.get("idsArray")
         reformattedData = order.get("reformattedData")
         account_id = order.get("account", {}).get("id")
+        exit_type = order.get("exit")
         side = order.get("side")
+        
         success = bot.ordercancel(
-            result[2], result[1], "MultipleExit", result[4], status_url, result[18], 
-            result[19], op, TradeId, side, idsArray, reformattedData, account_id, trade_url
+            result[2], result[1], exit_type, result[4], status_url, result[18], 
+            result[19], op, TradeId, side, idsArray, reformattedData, account_id, trade_url,
         )
         if success:
             print("Exit executed successfully")
@@ -175,9 +179,14 @@ def place_Trade(instances: list, data: dict) -> str:
             myamount = order.get("amount")
             exit_type = order.get("exit")
             toOrder = order.get("toOrder")
+            riskSl = order.get("riskSl")
+            print("riskSl",riskSl)
 
-            if toOrder or result[0]:
+            if toOrder:
                 t = threading.Thread(target=place_new_trade, args=(bot, result, myamount))
+                threads.append(t)
+            elif  result[0]:
+                t = threading.Thread(target=place_new_trade, args=(bot, result, myamount,riskSl))
                 threads.append(t)
             elif exit_type == "Partial Exit":
                 t = threading.Thread(target=partial_exit, args=(bot, result, order, op))
@@ -186,6 +195,7 @@ def place_Trade(instances: list, data: dict) -> str:
                 t = threading.Thread(target=amend_trade, args=(bot, result, order, op))
                 threads.append(t)
             elif exit_type in ["Exit", "MultipleExit"]:
+                print("my data", exit_type)
                 t = threading.Thread(target=exit_trade, args=(bot, result, order, op))
                 threads.append(t)
 

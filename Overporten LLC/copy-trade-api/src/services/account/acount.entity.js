@@ -56,9 +56,9 @@ export const createNew =
         return res.status(400).send({ message: "Bad Request" });
 
       const doc = await processCSVFileAccount(req.files.docs.path);
-      console.log("doc",doc);
+      console.log("doc", doc);
 
-      if (!doc.length > 0)
+      if (doc.length === 0)
         return res.status(400).send({ message: "Unable to read CSV File" });
 
       const users = doc.map((row) => ({
@@ -68,14 +68,25 @@ export const createNew =
       }));
       console.log(users);
 
-      const account = await Account.insertMany(users);
-      ws.emit("account", account);
-      res.status(200).send({ message: "Accounts created successfully" });
+      const bulkOps = users.map(user => ({
+        updateOne: {
+          filter: { accountId: user.accountId },
+          update: { $set: user },
+          upsert: true
+        }
+      }));
+
+      const result = await Account.bulkWrite(bulkOps);
+      console.log("Bulk write result:", result);
+      
+      ws.emit("account", result);
+      res.status(200).send({ message: "Accounts processed successfully" });
     } catch (error) {
       console.error("Error:", error);
       res.status(500).send({ message: "Internal Server Error" });
     }
   };
+
 
 
 /**

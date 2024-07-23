@@ -68,6 +68,11 @@ def cancel_order(driver,action_type:str,
                         current_trade_id = trade_ids[i]
                         print("ID:", current_id)
                         print("Trade ID:", current_trade_id)
+                        try:
+                            WebDriverWait(driver, 1).until(
+                                    EC.element_to_be_clickable((By.XPATH, '//a[div[contains(text(), "Open Positions")]]'))).click()
+                        except: 
+                            print("open Posotion is not working ")
 
                         try:
                             WebDriverWait(driver, 2).until(
@@ -95,7 +100,7 @@ def cancel_order(driver,action_type:str,
                             amount_elem.clear()
                             amount_elem.send_keys(amount)
                         except:
-                            requests.post(status_url,verify=False,data={"id":id,"status":"Desyncronised", "orderCreated": order_created,"message":"Ordrer Desyncronised","TradeId" : current_trade_id,})
+                            requests.post(status_url,verify=False,data={"id":id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","TradeId" : current_trade_id,})
                             return False
                 
                             # Click on submit button
@@ -106,17 +111,17 @@ def cancel_order(driver,action_type:str,
                             sleep(.2)
                             print("Clicked on submit button.")
                             # Post request
-                            requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Order Amend", "tradeId": current_trade_id})
+                            requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Trade Amend", "tradeId": current_trade_id})
                         except:
                             print("Error in clicking submit button.")
-                            requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Order Active", "tradeId": current_trade_id})
+                            requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Trade Active", "tradeId": current_trade_id})
                             continue
                             
                         # Click on close button
                         try:
                             driver.find_element(By.XPATH, xpaths.common["close_button"]).click()
                             print("Clicked on the close button.")
-                            requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Order Active", "tradeId": current_trade_id})
+                            requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "message": "Trade Active", "tradeId": current_trade_id})
                         except:
                             print("Error in clicking close button or page refresh needed.")
                             driver.refresh()
@@ -131,6 +136,11 @@ def cancel_order(driver,action_type:str,
         
         elif selling_type == "Exit":
             print("tradeId", TradeId)
+            try:
+                WebDriverWait(driver, 1).until(
+                        EC.element_to_be_clickable((By.XPATH, '//a[div[contains(text(), "Open Positions")]]'))).click()
+            except: 
+                print("open Posotion is not working ")
             try:
                 close_button_xpath = cancel_xpaths["trade_close"].format(TradeId)
                 
@@ -150,7 +160,7 @@ def cancel_order(driver,action_type:str,
                     "id": id, 
                     "TradeId": TradeId, 
                     "status": "Closed", 
-                    "message": "Order Closed", 
+                    "message": "Trade Closed", 
                     "orderCreated": order_created
                 })
             except Exception as e:
@@ -158,11 +168,11 @@ def cancel_order(driver,action_type:str,
                 requests.post(status_url, verify=False, data={
                     "id": id, 
                     "TradeId": TradeId, 
-                    "status": "Desynchronized", 
+                    "status": "Desyncronised", 
                     "orderCreated": order_created, 
-                    "message": "Order Desynchronized"
+                    "message": "Trade Desyncronised"
                 })
-                return "Desynchronized"
+                return "Desyncronised"
 
             try:
                 # Close the confirmation dialog
@@ -174,6 +184,11 @@ def cancel_order(driver,action_type:str,
 
         elif selling_type == "Partial Exit":
             print(cancel_xpaths["trade_close"].format(TradeId))
+            try:
+                WebDriverWait(driver, 1).until(
+                        EC.element_to_be_clickable((By.XPATH, '//a[div[contains(text(), "Open Positions")]]'))).click()
+            except: 
+                print("open Posotion is not working ")
             try:
                 # Attempt to close the trade directly
                 close_button_xpath = cancel_xpaths["trade_close"].format(TradeId)
@@ -191,7 +206,7 @@ def cancel_order(driver,action_type:str,
                         "id": id,
                         "status": "Desyncronised",
                         "orderCreated": order_created,
-                        "message": "Order Desyncronised",
+                        "message": "Trade Desyncronised",
                         "TradeId": TradeId
                     })
 
@@ -205,7 +220,7 @@ def cancel_order(driver,action_type:str,
                     "id": id,
                     "status": "Active",
                     "orderCreated": order_created,
-                    "message": "Order Created",
+                    "message": "Trade Created",
                     "TradeId": TradeId
                 })
                 return "Active"
@@ -216,7 +231,7 @@ def cancel_order(driver,action_type:str,
                     "id": id,
                     "status": "Desyncronised",
                     "orderCreated": order_created,
-                    "message": "Order Desyncronised",
+                    "message": "Trade Desyncronised",
                     "TradeId": TradeId
                 })
                 return "Desyncronised"

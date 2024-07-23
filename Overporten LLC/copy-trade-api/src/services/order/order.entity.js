@@ -51,17 +51,17 @@ export const createOrder =
       if (!accounts)
         return res.status(400).send({ message: "No accounts found for trade" });
 
-      const { marketData, stopLoss, entryPrice, exitFrom } = req.body;
+      const { marketData, riskSl, entryPrice, exitFrom } = req.body;
 
       let orders = [];
       await Promise.all(
         accounts.map(async (account) => {
           const side = req.body.side;
-          const ammount = calAmountbyU(account.u, stopLoss, entryPrice, side);
+          const ammount = calAmountbyU(account.u, riskSl, entryPrice, side);
           
           console.log(ammount);
           if (ammount !== 0) {
-            const log = await genLog("Pending", "Order Created");
+            const log = await genLog("Pending", "Trade Created");
             const order = await db.create({
               table: Order,
               key: {
@@ -191,7 +191,7 @@ export const createOrderPartialExit =
           }
 
           if (ammount !== 0) {
-            const log = await genLog("Pending", "Order Created");
+            const log = await genLog("Pending", "Trade Created");
             const order = await db.create({
               table: Order,
               key: {
@@ -376,6 +376,7 @@ export const updateOrder =
       );
 
       orders.childrens = order;
+      res.status(200).send(orders);
 
       try {
         const payLoad = { accounts, order };
@@ -384,7 +385,7 @@ export const updateOrder =
           data: payLoad,
         });
         ws.emit("account", response.data);
-        return res.status(200).send(orders);
+        
       } catch (err) {
         console.log(err);
       }

@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { shallowEqual, useSelector } from "react-redux";
 import Loader from "../../Components/Shared/Loader/Loader";
-
-import THead from "./THead";
-import TRow from "./TRow";
-import { Minus, Plus } from "@phosphor-icons/react";
-import Actions from "./Actions";
-import ActionMultiple from "./ActionMultiple";
 import { Tabs } from "flowbite-react";
-import MultipleUpdateOrder from "../../Components/Modal/UpdateOrder/MultipleUpdateOrder";
 import OpenTradesSection from "./tabs/OpenTradesSection";
 import OpenOrdersSection from "./tabs/OpenOrdersSection";
 import "./Actions.css"
@@ -21,7 +14,7 @@ export default function OrderSummary() {
     }),
     shallowEqual
   );
-
+  
   const { parentTrade, tradeLoading } = useSelector(
     (state) => ({
       parentTrade: state.tradeStore.trades,
@@ -29,54 +22,64 @@ export default function OrderSummary() {
     }),
     shallowEqual
   );
-
+  
   const [groupedOrders, setGroupedOrders] = useState({});
   const [groupedTrade, setGroupedTrade] = useState({});
   const [activeAccordion, setActiveAccordion] = useState([]);
-
+  
   useEffect(() => {
     const updateData = () => {
       const newGroupedOrders = {};
       const newGroupedTrade = {};
-
+  
+      // Group parent orders by market name and side, only including children with accountType: "Primary"
       parentOrders.forEach((order) => {
-        const marketName = order?.childrens?.[0]?.marketData?.marketName;
-        if (marketName) {
-          const side = order.childrens[0].side;
-          const key = `${marketName}-${side}`;
-          if (!newGroupedOrders[key]) {
-            newGroupedOrders[key] = [];
+        const primaryChildren = order.childrens.filter(child => child.accountType === "Primary");
+        if (primaryChildren.length > 0) {
+          const marketName = primaryChildren[0].marketData.marketName;
+          if (marketName) {
+            const side = primaryChildren[0].side;
+            const key = `${marketName}-${side}`;
+            if (!newGroupedOrders[key]) {
+              newGroupedOrders[key] = [];
+            }
+            newGroupedOrders[key].push(order);
           }
-          newGroupedOrders[key].push(order);
         }
       });
-
+  
+      console.log("parentOrders", parentOrders);
+  
+      // Group parent trades by market name and side, only including children with accountType: "Primary"
       parentTrade?.forEach((order) => {
-        const marketName = order?.childrens?.[0]?.marketData?.marketName;
-        if (marketName) {
-          const side = order.childrens[0].side;
-          const key = `${marketName}-${side}`;
-          if (!newGroupedTrade[key]) {
-            newGroupedTrade[key] = [];
+        const primaryChildren = order.childrens.filter(child => child.accountType === "Primary");
+        if (primaryChildren.length > 0) {
+          const marketName = primaryChildren[0].marketData.marketName;
+          if (marketName) {
+            const side = primaryChildren[0].side;
+            const key = `${marketName}-${side}`;
+            if (!newGroupedTrade[key]) {
+              newGroupedTrade[key] = [];
+            }
+            newGroupedTrade[key].push(order);
           }
-          newGroupedTrade[key].push(order);
         }
       });
-
+  
       setGroupedOrders(newGroupedOrders);
       setGroupedTrade(newGroupedTrade);
     };
-
+  
     updateData();
   }, [parentOrders, parentTrade]);
-
+  
   useEffect(() => {
     setActiveAccordion([
       ...Object.keys(groupedOrders),
       ...Object.keys(groupedTrade),
     ]);
   }, [groupedOrders, groupedTrade]);
-
+  
   const toggleAccordion = (marketName) => {
     setActiveAccordion((prevState) => {
       if (prevState.includes(marketName)) {
@@ -86,6 +89,7 @@ export default function OrderSummary() {
       }
     });
   };
+  
 
   return (
     <>

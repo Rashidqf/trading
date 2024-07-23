@@ -44,6 +44,11 @@ def ammend_order(
                     try:
                         current_id = ids[i]
                         current_trade_id = trade_ids[i]
+                        try:
+                            WebDriverWait(driver, 1).until(
+                                    EC.element_to_be_clickable((By.XPATH, '//a[div[contains(text(), "Open Positions")]]'))).click()
+                        except: 
+                            print("open Posotion is not working ")
 
                         # Click on cancel button
                         try:
@@ -61,11 +66,11 @@ def ammend_order(
                                 sleep(.2)
                             except:
                                 print("Something went wrong")
-                                requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Ordrer Desyncronised","tradeId" : current_trade_id})
+                                requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","tradeId" : current_trade_id})
                                 
                                 # return False
                     except Exception as e:
-                        requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Ordrer Desyncronised","tradeId" : current_trade_id})
+                        requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","tradeId" : current_trade_id})
                         
                     try:
                         try:
@@ -104,32 +109,38 @@ def ammend_order(
                             ammend_elem.clear()
                             ammend_elem.send_keys(ammend_at_price)
                     except Exception as e:
-                        requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Ordrer Desyncronised","tradeId" : current_trade_id})
+                        requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","tradeId" : current_trade_id})
                         
                     try:
                         driver.find_element(By.XPATH, xpaths.common["submit_button"]).click()
-                        sleep(.2)
-                        
-                        print("success")
-                        requests.post(status_url,verify=False,data={"id":current_id,"status":"Active","orderCreated": order_created,"openPrice":open_price,"message":f"Order Ammend with {ammend_at_price}","tradeId" : current_trade_id})
-                        
-                        
-                        WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, xpaths.common["ammndClose"])))
-                        
                     except Exception as e:
-                        print("Something went wrong !!")
-                        # try:
-                        #     sleep(.2)
-                        #     driver.find_element(By.XPATH, xpaths.common["close_button"]).click()
-                        #     sleep(.15)
-                        # except: 
-                        #     pass
-                        #     #print("Close btn not found")
-                        requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Ordrer Desyncronised","tradeId" : current_trade_id})
+                        requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","tradeId" : current_trade_id,"openPrice": open_price})
+                    try:
+                        direction_element = WebDriverWait(driver, 10).until(
+                        EC.visibility_of_element_located((By.XPATH, "//span[@class='spnReferenceNo']")))
+                        newTradeid = direction_element.text
+                        print(newTradeid)
+                        driver.find_element(By.XPATH, xpaths.common["close_button"]).click()
+                        print("close_button")
+                        requests.post(status_url, verify=False, data={"id": current_id, "status": "Active", "orderCreated": order_created, "message": f"Trade Ammend with {ammend_at_price}", "tradeId": current_trade_id,"openPrice": open_price})
+                        print("success")
+                    except Exception as e:
+                        print("exception")
+                        requests.post(status_url,verify=False,data={"id":current_id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","tradeId" : current_trade_id,"openPrice": open_price})
+                        
+                        
+                        
+                        # WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, xpaths.common["ammndClose"])))
+                        
                         
             
                     
         else:
+            try:
+                WebDriverWait(driver, 1).until(
+                        EC.element_to_be_clickable((By.XPATH, '//a[div[contains(text(), "Open Positions")]]'))).click()
+            except: 
+                print("open Posotion is not working ")
             try:
                 WebDriverWait(driver, 1).until(
                         EC.element_to_be_clickable((By.XPATH, ammend_xpaths["edit_button"].format(TradeId)))).click()
@@ -145,7 +156,7 @@ def ammend_order(
                         EC.element_to_be_clickable((By.XPATH, ammend_xpaths["edit_button"].format(TradeId)))).click()
                     sleep(.2)
                 except:
-                    requests.post(status_url,verify=False,data={"id":id,"status":"Desyncronised", "orderCreated": order_created,"message":"Ordrer Desyncronised","tradeId" : TradeId})
+                    requests.post(status_url,verify=False,data={"id":id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","tradeId" : TradeId})
                     return "Desyncronised"
             try:
                 try:
@@ -186,7 +197,7 @@ def ammend_order(
 
 
             except Exception as e:
-                requests.post(status_url,verify=False,data={"id":id,"status":"Desyncronised", "orderCreated": order_created,"message":"Ordrer Desyncronised","tradeId" : TradeId})
+                requests.post(status_url,verify=False,data={"id":id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","tradeId" : TradeId})
                 return "Desyncronised"
                 
                 # try:
@@ -202,10 +213,9 @@ def ammend_order(
                 sleep(.2)
                 
                 print("success")
-                requests.post(status_url,verify=False,data={"id":id,"status":"Active","orderCreated": order_created,"openPrice":open_price,"message":f"Order Ammend with {ammend_at_price}","tradeId" : TradeId})
                 
                 # WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, xpaths.common["back_button"])))
-                driver.refresh()
+                # driver.refresh()
             except Exception as e:
                 print("Something went wrong !!")
                 # try:
@@ -215,11 +225,31 @@ def ammend_order(
                 # except: 
                 #     pass
                 #     #print("Close btn not found")
-                requests.post(status_url, verify=False, data={"id":id,"status":"Desyncronised", "orderCreated": order_created,"message":"Ordrer Desyncronised","tradeId" : TradeId})
+                requests.post(status_url, verify=False, data={"id":id,"status":"Desyncronised", "orderCreated": order_created,"message":"Trade Desyncronised","tradeId" : TradeId})
                 
             
                 print("id not found")
                 return "Desyncronised"
+            try:
+                direction_element = WebDriverWait(driver, 10).until(
+                    EC.visibility_of_element_located((By.XPATH, "//span[@class='spnReferenceNo']")))
+                newTradeid = direction_element.text
+                print("spnReferenceNo")
+                
+                driver.find_element(By.XPATH, xpaths.common["close_button"]).click()
+                print("close_button")
+                driver.refresh()
+
+                
+                requests.post(status_url, verify=False, data={"id": id, "status": "Active", "orderCreated": order_created, "openPrice": open_price, "message": f"Trade Ammend with {ammend_at_price}", "tradeId": TradeId})
+                
+                return "Active"
+            except Exception as e:
+                print("Trade ID not found !!")
+                trade_status = "Desyncronised"
+                requests.post(status_url, verify=False, data={"id": id, "status": "Desyncronised", "orderCreated": order_created, "message": "Trade Desyncronised","openPrice": open_price, "tradeId": TradeId})
+                return "Desyncronised"
+            
         
             
            

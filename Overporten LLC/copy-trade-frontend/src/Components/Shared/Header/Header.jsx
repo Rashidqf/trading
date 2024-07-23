@@ -1,6 +1,6 @@
 import { ShoppingBagOpen, ShoppingCartSimple, ChartLineUp ,UsersFour,ClockCounterClockwise  } from '@phosphor-icons/react';
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation } from "react-router-dom";
 import Item from '../../../Features/MarketPlace/components/Item';
 import AddAccount from '../../Modal/AddAccount/AddAccount';
 import AddCSV from '../../Modal/AddCSV/AddCSV';
@@ -25,6 +25,17 @@ const data = [
 ];
 
 export default function Header() {
+    const location = useLocation();
+    useEffect(() => {
+        const reloaded = localStorage.getItem("reloaded");
+    
+        if (location.pathname === "/dashboard/all-orders" && reloaded !== "true") {
+          localStorage.setItem("reloaded", "true");
+          window.location.reload();
+        } else if (location.pathname !== "/dashboard/all-orders") {
+          localStorage.removeItem("reloaded");
+        }
+      }, [location.pathname]);
     return (
         <>
             <section className="py-3 px-8 flex justify-between">

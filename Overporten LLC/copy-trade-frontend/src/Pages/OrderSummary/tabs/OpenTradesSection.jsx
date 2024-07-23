@@ -13,7 +13,6 @@ const OpenTradesSection = ({
 }) => {
   const newOrders = useSelector((state) => state.orderStore.orders);
 
-  console.log(groupedOrders);
 
   return (
     <section className="p-5 w-full flex flex-col h-full">
@@ -35,7 +34,17 @@ const OpenTradesSection = ({
               childPercentage === 200 ? 100 : childPercentage;
             return acc + normalizedPercentage;
           }, 0);
+          const totalPercentageTwoDecimals = parseFloat(totalPercentage.toFixed(2));
+          
 
+          const totalOpenPrice = orders.reduce((acc, order) => {
+            const childPercentage =
+              order.childrens.length > 0 ? order.childrens[0].openPrice : 0;
+            const normalizedPercentage =
+              childPercentage === 200 ? 100 : childPercentage;
+            return acc + normalizedPercentage;
+          }, 0);
+          const totalOpenPriceTwoDecimals = parseFloat(totalOpenPrice.toFixed(2));
           return (
             <div key={groupKey}>
               <h2 className="bg-[#f3f4f6]">
@@ -70,14 +79,17 @@ const OpenTradesSection = ({
                       <div className="flex-[11.11%] text-sm font-bold uppercase text-[#0c0d0e] flex justify-center">
                         ---
                       </div>
-                      <div className="flex-[11.11%] text-sm text-bfont-boldont-semibold text-[#0c0d0e] flex justify-center">
+                      <div className="flex-[11.11%] text-sm text-bfont-boldont-semibold text-[#0c0d0e] flex justify-center">  
                         ---
+                      </div>
+                      <div className="flex-[11.11%] text-sm text-bfont-boldont-semibold text-[#0c0d0e] flex justify-center">
+                        {`${totalOpenPriceTwoDecimals}`}
                       </div>
                       <div className="flex-[11.11%] text-sm text-bfont-boldont-semibold text-[#0c0d0e] flex justify-center">
                         ---
                       </div>
                       <div className="flex-[11.11%] text-sm font-bold uppercase text-[#0c0d0e] flex justify-center">
-                        {`${totalPercentage}`}
+                        {`${totalPercentageTwoDecimals}`}
                       </div>
                       {/* <div className="flex-[11.11%] text-sm font-bold uppercase text-[#0c0d0e] flex justify-center">
                         {totalAmount}
@@ -86,6 +98,9 @@ const OpenTradesSection = ({
                         ---
                       </div>
                       <div className="flex-[11.11%] text-sm font-bold uppercase text-[#0c0d0e] flex justify-center">
+                        ---
+                      </div>
+                      <div className="flex-[11.11%] text-sm text-bfont-boldont-semibold text-[#0c0d0e] flex justify-center">
                         ---
                       </div>
 

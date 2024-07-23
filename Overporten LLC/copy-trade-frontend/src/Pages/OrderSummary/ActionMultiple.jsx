@@ -180,7 +180,7 @@ export default function ActionMultiple({ orderDataList, ordertype }) {
       } catch (error) {
         console.error(error);
       } finally {
-        // setLoading(false); // Set loading back to false after the action is completed
+        setLoading(false); // Set loading back to false after the action is completed
       }
     } else {
       try {

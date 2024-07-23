@@ -12,6 +12,9 @@ const schema = new Schema(
     orderId: {
       type: String,
     },
+    riskSl:{
+      type: Number,
+    },
     tradeIdArray:{
       type: String
     },    

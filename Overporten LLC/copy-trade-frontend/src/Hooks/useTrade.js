@@ -95,7 +95,9 @@ const useTrade = () => {
           }
           myResolve(data)
         })
-        .catch((err) => console.log(err));
+        .catch((err) =>{
+          myReject(err)
+        });
     } catch (err) {
       myReject(err)
       console.log(err);
@@ -147,7 +149,9 @@ const useTrade = () => {
           }
           myResolve(data)
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          myReject(err)
+          console.log(err)});
     } catch (err) {
       myReject(err)
       console.log(err);

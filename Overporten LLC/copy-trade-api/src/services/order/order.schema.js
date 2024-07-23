@@ -12,6 +12,9 @@ const schema = new Schema(
     entryPrice: {
       type: Number,
     },
+    riskSl:{
+      type: Number,
+    },
     stopLoss: {
       type: Number,
     },

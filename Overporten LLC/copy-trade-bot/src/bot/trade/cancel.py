@@ -36,9 +36,7 @@ def order_cancel(driver,action_type:str,
                 )-> str:
     
         global direction_value 
-        
         print("selling_type",selling_type)
-        selling_type = "Exit"
 
         
         cancel_xpaths = xpaths.cancel_order
@@ -83,8 +81,7 @@ def order_cancel(driver,action_type:str,
                         cancel_button.click()
                         print("remove_Button")
                     except:
-                        print("Unable to click on cancel button.",xpaths.common["opened_order"])
-                        print(xpaths.cancel_order["remove_Button"].format(current_trade_id))
+                        print("Unable to click on cancel button.")
                         requests.post(trade_url, verify=False, data={"id": current_id, "status": "Desyncronised", "message": "Order Desyncronised", "tradeId": current_trade_id})
                         continue
             
@@ -113,9 +110,9 @@ def order_cancel(driver,action_type:str,
                     print("Error occurred or page refresh needed.")
                     driver.refresh()        
         
-        
         elif selling_type == "MultipleExit":
             current_url = driver.current_url
+            print("Selling TYpe", selling_type)
             try:
                 driver.find_element(By.TAG_NAME, "body").send_keys(Keys.CONTROL + Keys.HOME)
                 sleep(0.2)
@@ -143,9 +140,12 @@ def order_cancel(driver,action_type:str,
                 driver.find_element(By.XPATH, xpaths.common["submit_button"]).click()
                 print("success")
                 sleep(.25)
+                driver.find_element(By.XPATH,xpaths.common["close_button"]).click()
+                print("Clicked on the close button")
                 requests.post(status_url, verify=False, data={"id": id, "tradeId": TradeId, "status": "Closed", "message": "Order Closed", "idsArray": idsArray})
             except Exception as e:
                 pass
+        
         else:
                     
             driver.refresh()

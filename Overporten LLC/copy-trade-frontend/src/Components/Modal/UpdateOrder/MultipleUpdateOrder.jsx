@@ -30,6 +30,7 @@ export default function MultipleUpdateOrder({ orderDataList, ordertype,orderData
     orderDataList.forEach((orderData) => {
       if (ordertype === "order") {
         closeTrade(orderData?.id);
+        window.location.reload();
       } else {
         closeOrder(orderData?.id);
         window.location.reload(); // Reload the page when the 'else' section is executed
