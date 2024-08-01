@@ -57,9 +57,11 @@ export default function UpdateTrade({ orderData, handleModal, ordertype  }) {
         setLoading(true);
         const action = await updateOrderNew(orderData.id, payload)
         await action;
+        handleModal();
       } catch (error) {
         console.error(error);
       } finally {
+        handleModal();
         setLoading(false); // Set loading back to false after the action is completed
       }
     }else{
@@ -68,9 +70,11 @@ export default function UpdateTrade({ orderData, handleModal, ordertype  }) {
         setLoading(true);
         const action = await updateTrade(orderData.id, payload)
         await action;
+        handleModal();
       } catch (error) {
         console.error(error);
       } finally {
+        handleModal();
         setLoading(false); // Set loading back to false after the action is completed
       }
     }

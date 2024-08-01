@@ -71,7 +71,10 @@ def order_cancel(driver,action_type:str,
                 try:
                     current_id = ids[i]
                     current_trade_id = trade_ids[i]
-
+                    try:
+                        WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, xpaths.common["opened_order"]))).click()
+                    except:
+                        print("Unable to click on cancel button.")
                     # Click on cancel button
                     try:
                         WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, xpaths.common["opened_order"]))).click()
